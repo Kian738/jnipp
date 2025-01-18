@@ -29,7 +29,7 @@ namespace jni
     static JavaVM* javaVm = nullptr;
 
     static bool getEnv(JavaVM *vm, JNIEnv **env) {
-        return vm->GetEnv((void **)env, JNI_VERSION_1_2) == JNI_OK;
+        return vm->GetEnv((void **)env, JNI_VERSION_21) == JNI_OK;
     }
 
     static bool isAttached(JavaVM *vm) {
@@ -1470,22 +1470,25 @@ namespace jni
         return result;
     }
 
-    Vm::Vm(const char* path_)
+    Vm::Vm(const char* classPath)
     {
         bool expected = false;
-
-        std::string path = path_ ? path_ : detectJvmPath();
-
-        if (path.length() == 0)
-            throw InitializationException("Could not locate Java Virtual Machine");
+    
+        auto path = detectJvmPath();
+    
+      	if (path.empty())
+              throw InitializationException("Could not locate Java Virtual Machine");
         if (!isVm.compare_exchange_strong(expected, true))
             throw InitializationException("Java Virtual Machine already initialized");
-
+    
         if (javaVm == nullptr)
         {
-            JNIEnv* env;
+            JNIEnv* env = nullptr;
             JavaVMInitArgs args = {};
-            args.version = JNI_VERSION_1_2;
+            args.version = JNI_VERSION_21;
+            args.nOptions = 1;
+            args.options = new JavaVMOption[1];
+            args.options[0].optionString = (char*)classPath;
 
 #ifdef _WIN32
 
