@@ -1470,13 +1470,12 @@ namespace jni
         return result;
     }
 
-    Vm::Vm(const char* classPath)
+    Vm::Vm(const std::vector<std::string>& options, const std::string& path)
     {
         bool expected = false;
     
-        auto path = detectJvmPath();
-    
-      	if (path.empty())
+        auto finalPath = path.empty() ? detectJvmPath() : path;
+      	if (finalPath.empty())
               throw InitializationException("Could not locate Java Virtual Machine");
         if (!isVm.compare_exchange_strong(expected, true))
             throw InitializationException("Java Virtual Machine already initialized");
@@ -1486,13 +1485,14 @@ namespace jni
             JNIEnv* env = nullptr;
             JavaVMInitArgs args = {};
             args.version = JNI_VERSION_21;
-            args.nOptions = 1;
-            args.options = new JavaVMOption[1];
-            args.options[0].optionString = (char*)classPath;
+			args.nOptions = (jint)options.size();
+			args.options = new JavaVMOption[args.nOptions];
+			for (size_t i = 0; i < options.size(); i++)
+				args.options[i].optionString = (char*)options[i].c_str();
 
 #ifdef _WIN32
 
-            HMODULE lib = ::LoadLibraryA(path.c_str());
+            HMODULE lib = ::LoadLibraryA(finalPath.c_str());
 
             if (lib == NULL)
             {
@@ -1515,7 +1515,7 @@ namespace jni
 
 #else
 
-            void* lib = ::dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+            void* lib = ::dlopen(finalPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
 
             if (lib == NULL)
             {
@@ -1542,7 +1542,11 @@ namespace jni
             Note that you can't ever *really* unload the JavaVM. If you call
             DestroyJavaVM(), you can't then call JNI_CreateJavaVM() again.
             So, instead we just flag it as "gone".
+            ^ too bad, so sad.
          */
+        javaVm->DestroyJavaVM();
+        javaVm->DetachCurrentThread();
+        
         isVm.store(false);
     }
 
