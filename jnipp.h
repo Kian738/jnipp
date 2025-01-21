@@ -642,6 +642,13 @@ namespace jni
         Class getParent() const;
 
         /**
+			Checks whether this Class is assignable from the given Class.
+			\param other The Class to check against.
+			\return `true` if this Class is assignable from the given Class.
+        */
+		bool isAssignableFrom(const Class& other) const;
+
+        /**
             Gets the JNI-qualified name of this Class.
             \return The Class name.
          */

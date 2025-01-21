@@ -769,6 +769,11 @@ namespace jni
         return Class(env()->GetSuperclass(getHandle()), DeleteLocalInput);
     }
 
+    bool Class::isAssignableFrom(const Class& other) const
+    {
+        return env()->IsAssignableFrom(getHandle(), other.getHandle());
+    }
+
     std::string Class::getName() const
     {
         return Object::call<std::string>("getName");
