@@ -1547,12 +1547,7 @@ namespace jni
             Note that you can't ever *really* unload the JavaVM. If you call
             DestroyJavaVM(), you can't then call JNI_CreateJavaVM() again.
             So, instead we just flag it as "gone".
-            ^ too bad, so sad.
          */
-        javaVm->DestroyJavaVM();
-        javaVm->DetachCurrentThread();
-		javaVm = nullptr;
-        
         isVm.store(false);
     }
 
