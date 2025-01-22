@@ -1551,6 +1551,7 @@ namespace jni
          */
         javaVm->DestroyJavaVM();
         javaVm->DetachCurrentThread();
+		javaVm = nullptr;
         
         isVm.store(false);
     }
